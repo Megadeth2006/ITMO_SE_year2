@@ -1,3 +1,0 @@
-memory_mapped_io:
-  99: [1, 2, 3, "hello"]
-limit: 0x90
