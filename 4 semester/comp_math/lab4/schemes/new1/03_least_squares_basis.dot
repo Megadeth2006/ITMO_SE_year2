@@ -1,0 +1,32 @@
+digraph G {
+rankdir=TB;
+graph [fontname="DejaVu Sans", bgcolor="white", dpi=180, nodesep=0.45, ranksep=0.55, splines=ortho];
+node [fontname="DejaVu Sans", fontsize=12, shape=rectangle, style="rounded,filled", fillcolor="white", color="#333333", penwidth=1.2, margin="0.10,0.07"];
+edge [fontname="DejaVu Sans", fontsize=10, color="#333333", arrowsize=0.7];
+
+start [shape=ellipse, label="Начало"];
+in [shape=parallelogram, label="Ввод: xs, ys, basisFunctions"];
+init [label="size = len(basisFunctions)\nmatrix = []\nvector = []"];
+bval [label="basisValues[i][k] = basis_i(xs[k])"];
+iinit [label="i = 0"];
+iloop [shape=diamond, label="i < size?"];
+row [label="matrixRow = []\nj = 0"];
+jloop [shape=diamond, label="j < size?"];
+aij [label="A_ij = Σ basisValues[i][k] * basisValues[j][k]"];
+appj [label="matrixRow.append(A_ij)\nj += 1"];
+bi [label="B_i = Σ ys[k] * basisValues[i][k]"];
+appi [label="matrix.append(matrixRow)\nvector.append(B_i)\ni += 1"];
+solve [label="coefficients = solve_linear_system(matrix, vector)"];
+out [shape=parallelogram, label="Вывод: coefficients"];
+end [shape=ellipse, label="Конец"];
+start -> in -> init -> bval -> iinit -> iloop;
+iloop -> row [label="да"];
+row -> jloop;
+jloop -> aij [label="да"];
+aij -> appj -> jloop;
+jloop -> bi [label="нет"];
+bi -> appi -> iloop;
+iloop -> solve [label="нет"];
+solve -> out -> end;
+
+}

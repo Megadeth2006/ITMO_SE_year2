@@ -1,0 +1,47 @@
+    .data
+input_addr:  .word 0x80
+output_addr: .word 0x84
+fnv_prime:   .word 0x01000193
+fnv_offset:  .word 0x811c9dc5
+
+.org 0x90
+
+    .text
+_start: 
+
+start_program:
+    ; параллельно готовим адреса переменных и констант
+    lui a0, %hi(input_addr)          / lui a1, %hi(output_addr)      / nop / nop
+    lui t0, %hi(fnv_prime)           / lui t1, %hi(fnv_offset)       / nop / nop
+
+    addi a0, a0, %lo(input_addr)     / addi a1, a1, %lo(output_addr) / nop / nop
+    addi t0, t0, %lo(fnv_prime)      / addi t1, t1, %lo(fnv_offset)  / nop / nop
+
+    ; загружаем из памяти адреса портов и константы
+    nop                              / nop / lw a0, 0(a0) / nop
+    nop                              / nop / lw a1, 0(a1) / nop
+    nop                              / nop / lw t0, 0(t0) / nop
+    nop                              / nop / lw t1, 0(t1) / nop
+
+    ; читаем первый символ входной строки
+    nop                              / nop / lb t2, 0(a0) / nop
+
+loop:
+    ; сначала проверяем текущий символ на 0, не читая следующий байт
+    nop                           / nop / nop / beqz t2, done
+
+    ; XOR текущего символа, читаем следующий
+    xor t1, t1, t2                / nop / lb t3, 0(a0) / nop
+    
+    ; умножаем хэш на fnv_prime и проверяем заранее считанный символ
+    mul t1, t1, t0                / nop / nop / beqz t3, done
+
+    ; XOR символа из t3, чтение следующего в t2
+    xor t1, t1, t3                / nop / lb t2, 0(a0) / nop
+
+    ; умножаем хэш на fnv prime и переходим к следующей итерации
+    mul t1, t1, t0                / nop / nop / j loop
+
+done:
+    nop                           / nop / sw t1, 0(a1) / nop  ; запись финального хэша в порт вывода
+    nop                           / nop / nop / halt ; завершаем работу

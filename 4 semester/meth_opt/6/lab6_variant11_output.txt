@@ -1,0 +1,14 @@
+TASK 1. GENETIC ALGORITHM FOR TSP
+Best route: 1 -> 5 -> 3 -> 4 -> 2 -> 1
+Route length: 19
+Improvements:
+  generation 0: 1 -> 2 -> 3 -> 4 -> 5 -> 1, length = 24
+  generation 3: 1 -> 5 -> 3 -> 4 -> 2 -> 1, length = 19
+
+TASK 2. ANT COLONY ALGORITHM FOR SHORTEST PATH
+Best path: A -> E -> D -> G
+Path length: 39
+Improvements:
+  iteration 1: A -> C -> E -> D -> F -> G, length = 55
+  iteration 1: A -> E -> D -> F -> G, length = 41
+  iteration 6: A -> E -> D -> G, length = 39

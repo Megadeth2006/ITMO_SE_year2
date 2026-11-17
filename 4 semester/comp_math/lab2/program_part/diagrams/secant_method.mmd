@@ -1,0 +1,10 @@
+flowchart TD
+    A([Начало]) --> B["Ввод: f(x), x0, x1, epsilon"]
+    B --> C["iteration = 0"]
+    C --> D["iteration = iteration + 1<br/>f0 = f(x0)<br/>f1 = f(x1)<br/>x2 = x1 - f1 * (x1 - x0) / (f1 - f0)"]
+    D --> E["diff = |x2 - x1|<br/>res = |f(x2)|"]
+    E --> F{"diff < epsilon<br/>и res < epsilon?"}
+    F -- да --> G["Вывод результата"]
+    G --> H([Конец])
+    F -- нет --> I["x0 = x1<br/>x1 = x2"]
+    I --> D

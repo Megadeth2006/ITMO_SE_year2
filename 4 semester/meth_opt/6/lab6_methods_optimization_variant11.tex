@@ -1,0 +1,430 @@
+
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{cmap}
+\usepackage[T2A,T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{tempora}
+\usepackage{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{hyperref}
+
+\geometry{left=25mm,right=15mm,top=20mm,bottom=20mm}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black}
+
+\lstset{
+    language=Python,
+    basicstyle=\fontencoding{T1}\ttfamily\scriptsize,
+    numbers=left,
+    numberstyle=\fontencoding{T1}\tiny,
+    stepnumber=1,
+    numbersep=7pt,
+    frame=single,
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=4,
+    keywordstyle=\bfseries,
+    commentstyle=\itshape,
+    stringstyle=\ttfamily,
+    captionpos=b
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\large Методы оптимизации\par}
+    \vspace{1.2cm}
+    {\Large\bfseries Лабораторная работа №6\par}
+    \vspace{0.4cm}
+    {\large Тема: «Методы поиска глобального экстремума»\par}
+    \vspace{0.8cm}
+    {\large Вариант 11\par}
+    \vfill
+    \begin{flushright}
+        Выполнили: Григорьев Д.А., Столбченко И.В.
+    \end{flushright}
+    \vfill
+    {Санкт-Петербург\par}
+    {2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Цель работы}
+Цель лабораторной работы --- решить две оптимизационные задачи с помощью эвристических методов:
+\begin{enumerate}
+    \item задачу коммивояжера с помощью генетического алгоритма;
+    \item задачу поиска кратчайшего пути от вершины A до вершины G с помощью алгоритма муравьиной колонии.
+\end{enumerate}
+
+\section{Задание 1. Задача коммивояжера}
+\subsection{Постановка задачи}
+Дано 5 городов и матрица расстояний между ними. Требуется найти замкнутый маршрут минимальной длины, который проходит через каждый город ровно один раз и возвращается в начальный город. В работе начальным городом считается город 1.
+
+В задании требуется использовать генетический алгоритм. Размер популяции задан как $N=4$, вероятность мутации равна $0{,}01$. Мутация реализуется как случайная перестановка двух генов в геноме.
+
+\subsection{Исходные данные}
+Для варианта 11 используется следующая матрица расстояний:
+
+\begin{table}[h!]
+\centering
+\caption{Матрица расстояний для задачи коммивояжера, вариант 11}
+\begin{tabular}{c|ccccc}
+\toprule
+ & Город 1 & Город 2 & Город 3 & Город 4 & Город 5 \\
+\midrule
+Город 1 & 0  & 1  & 11 & 10 & 5 \\
+Город 2 & 1  & 0  & 11 & 6  & 10 \\
+Город 3 & 11 & 11 & 0  & 6  & 1 \\
+Город 4 & 10 & 6  & 6  & 0  & 1 \\
+Город 5 & 5  & 10 & 1  & 1  & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Суть генетического алгоритма}
+Генетический алгоритм имитирует естественный отбор. Каждая особь популяции представляет один возможный маршрут. В данной работе геномом является перестановка городов со 2-го по 5-й, так как город 1 зафиксирован как начальный и конечный.
+
+Целевая функция --- длина маршрута:
+\[
+L = \sum_{i=1}^{n} d(v_i, v_{i+1}), \quad v_{n+1}=v_1.
+\]
+Так как нужно минимизировать длину, функция приспособленности взята в виде:
+\[
+F = \frac{1}{L}.
+\]
+
+Основные шаги алгоритма:
+\begin{enumerate}
+    \item создается начальная популяция из 4 случайных маршрутов;
+    \item для каждой особи вычисляется длина маршрута и приспособленность;
+    \item родители выбираются методом рулетки: чем меньше длина маршрута, тем выше шанс выбора;
+    \item применяется упорядоченное скрещивание, чтобы получить корректную перестановку городов;
+    \item с вероятностью $0{,}01$ выполняется мутация --- обмен двух случайных городов;
+    \item лучшая особь сохраняется без изменений за счет элитизма.
+\end{enumerate}
+
+\section{Задание 2. Алгоритм муравьиной колонии}
+\subsection{Постановка задачи}
+Требуется найти кратчайший путь из вершины A в вершину G. Граф задан матрицей весов. Значение $\infty$ означает, что ребра между соответствующими вершинами нет.
+
+\subsection{Исходные данные}
+\begin{table}[h!]
+\centering
+\caption{Матрица весов графа для алгоритма муравьиной колонии, вариант 11}
+\begin{tabular}{c|ccccccc}
+\toprule
+ & A & B & C & D & E & F & G \\
+\midrule
+A & $\infty$ & 17 & 5 & $\infty$ & 8 & $\infty$ & $\infty$ \\
+B & 17 & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+C & 5 & $\infty$ & $\infty$ & 17 & 17 & $\infty$ & 45 \\
+D & $\infty$ & $\infty$ & 17 & $\infty$ & 9 & 11 & 22 \\
+E & 8 & $\infty$ & 17 & 9 & $\infty$ & $\infty$ & $\infty$ \\
+F & $\infty$ & $\infty$ & $\infty$ & 11 & $\infty$ & $\infty$ & 13 \\
+G & $\infty$ & $\infty$ & 45 & 22 & $\infty$ & 13 & $\infty$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Суть алгоритма муравьиной колонии}
+Алгоритм муравьиной колонии моделирует поведение муравьев, которые выбирают путь с учетом длины ребра и количества феромона на нем. Чем короче ребро и чем больше на нем феромона, тем выше вероятность его выбора.
+
+Вероятность перехода из вершины $i$ в вершину $j$ вычисляется по формуле:
+\[
+P_{ij}=\frac{\tau_{ij}^{\alpha}\eta_{ij}^{\beta}}{\sum\limits_{k \in S}\tau_{ik}^{\alpha}\eta_{ik}^{\beta}},
+\]
+где $\tau_{ij}$ --- количество феромона на ребре, $\eta_{ij}=1/d_{ij}$ --- эвристическая привлекательность ребра, $S$ --- множество доступных соседних вершин, $\alpha$ и $\beta$ --- параметры влияния феромона и расстояния.
+
+После прохождения муравьев феромон испаряется:
+\[
+\tau_{ij} \leftarrow (1-\rho)\tau_{ij},
+\]
+а затем на ребрах успешных путей добавляется новый феромон:
+\[
+\Delta\tau_{ij}=\frac{Q}{L}.
+\]
+Здесь $L$ --- длина найденного пути, $Q$ --- коэффициент количества феромона.
+
+\section{Программная реализация}
+Ниже приведен полный код программы на Python. В нем реализованы оба метода: генетический алгоритм для задачи коммивояжера и алгоритм муравьиной колонии для поиска кратчайшего пути.
+
+\begin{lstlisting}[caption={Код программы для лабораторной работы №6}]
+import random
+import math
+
+# ---------- Task 1: genetic algorithm for TSP ----------
+DIST_TSP = [
+    [0, 1, 11, 10, 5],
+    [1, 0, 11, 6, 10],
+    [11, 11, 0, 6, 1],
+    [10, 6, 6, 0, 1],
+    [5, 10, 1, 1, 0],
+]
+
+
+def route_length(genome):
+    # City 1 is fixed as the start and finish.
+    route = [0] + genome + [0]
+    return sum(DIST_TSP[route[i]][route[i + 1]] for i in range(len(route) - 1))
+
+
+def fitness(genome):
+    return 1 / route_length(genome)
+
+
+def order_crossover(parent1, parent2):
+    n = len(parent1)
+    left, right = sorted(random.sample(range(n), 2))
+    child = [None] * n
+    child[left:right + 1] = parent1[left:right + 1]
+
+    pos = (right + 1) % n
+    for gene in parent2:
+        if gene not in child:
+            child[pos] = gene
+            pos = (pos + 1) % n
+    return child
+
+
+def mutate(genome, mutation_rate):
+    if random.random() < mutation_rate:
+        i, j = random.sample(range(len(genome)), 2)
+        genome[i], genome[j] = genome[j], genome[i]
+
+
+def select_parent(population):
+    total = sum(fitness(g) for g in population)
+    point = random.random() * total
+    current = 0
+    for genome in population:
+        current += fitness(genome)
+        if current >= point:
+            return genome[:]
+    return population[-1][:]
+
+
+def genetic_algorithm_tsp(seed=11, population_size=4, mutation_rate=0.01, generations=200):
+    random.seed(seed)
+    genes = list(range(1, len(DIST_TSP)))
+
+    population = []
+    while len(population) < population_size:
+        genome = genes[:]
+        random.shuffle(genome)
+        if genome not in population:
+            population.append(genome)
+
+    best = min(population, key=route_length)
+    improvements = [(0, best[:], route_length(best))]
+
+    for generation in range(1, generations + 1):
+        new_population = [min(population, key=route_length)[:]]
+        while len(new_population) < population_size:
+            parent1 = select_parent(population)
+            parent2 = select_parent(population)
+            child = order_crossover(parent1, parent2)
+            mutate(child, mutation_rate)
+            new_population.append(child)
+
+        population = new_population
+        current_best = min(population, key=route_length)
+        if route_length(current_best) < route_length(best):
+            best = current_best[:]
+            improvements.append((generation, best[:], route_length(best)))
+
+    return best, route_length(best), improvements
+
+
+# ---------- Task 2: ant colony algorithm for the shortest path ----------
+NAMES = ["A", "B", "C", "D", "E", "F", "G"]
+INF = math.inf
+GRAPH = [
+    [INF, 17, 5, INF, 8, INF, INF],
+    [17, INF, INF, INF, INF, INF, INF],
+    [5, INF, INF, 17, 17, INF, 45],
+    [INF, INF, 17, INF, 9, 11, 22],
+    [8, INF, 17, 9, INF, INF, INF],
+    [INF, INF, INF, 11, INF, INF, 13],
+    [INF, INF, 45, 22, INF, 13, INF],
+]
+
+
+def available_neighbors(vertex, visited):
+    return [
+        u for u, weight in enumerate(GRAPH[vertex])
+        if not math.isinf(weight) and u not in visited
+    ]
+
+
+def build_ant_path(start, finish, pheromone, alpha, beta):
+    path = [start]
+    visited = {start}
+    total_length = 0
+    current = start
+
+    while current != finish:
+        candidates = available_neighbors(current, visited)
+        if not candidates:
+            return None, math.inf
+
+        desirabilities = []
+        for nxt in candidates:
+            tau = pheromone[current][nxt] ** alpha
+            eta = (1 / GRAPH[current][nxt]) ** beta
+            desirabilities.append(tau * eta)
+
+        border = random.random() * sum(desirabilities)
+        cumulative = 0
+        chosen = candidates[-1]
+        for nxt, value in zip(candidates, desirabilities):
+            cumulative += value
+            if cumulative >= border:
+                chosen = nxt
+                break
+
+        path.append(chosen)
+        visited.add(chosen)
+        total_length += GRAPH[current][chosen]
+        current = chosen
+
+    return path, total_length
+
+
+def ant_colony_shortest_path(seed=11, iterations=80, ants_per_iteration=20,
+                             alpha=1.0, beta=2.0, evaporation=0.3, q=100):
+    random.seed(seed)
+    start, finish = 0, 6
+    n = len(GRAPH)
+    pheromone = [
+        [0.0 if math.isinf(GRAPH[i][j]) else 1.0 for j in range(n)]
+        for i in range(n)
+    ]
+
+    best_path = None
+    best_length = math.inf
+    improvements = []
+
+    for iteration in range(1, iterations + 1):
+        successful_paths = []
+        for _ in range(ants_per_iteration):
+            path, length = build_ant_path(start, finish, pheromone, alpha, beta)
+            if path is not None:
+                successful_paths.append((path, length))
+                if length < best_length:
+                    best_path = path[:]
+                    best_length = length
+                    improvements.append((iteration, best_path[:], best_length))
+
+        for i in range(n):
+            for j in range(n):
+                if not math.isinf(GRAPH[i][j]):
+                    pheromone[i][j] *= (1 - evaporation)
+
+        for path, length in successful_paths:
+            delta = q / length
+            for a, b in zip(path, path[1:]):
+                pheromone[a][b] += delta
+                pheromone[b][a] += delta
+
+    return best_path, best_length, improvements
+
+
+if __name__ == "__main__":
+    best_genome, best_tsp_length, ga_improvements = genetic_algorithm_tsp()
+    best_route = [0] + best_genome + [0]
+    best_route_text = " -> ".join(str(city + 1) for city in best_route)
+
+    print("TASK 1. GENETIC ALGORITHM FOR TSP")
+    print(f"Best route: {best_route_text}")
+    print(f"Route length: {best_tsp_length}")
+    print("Improvements:")
+    for generation, genome, length in ga_improvements:
+        route = [0] + genome + [0]
+        route_text = " -> ".join(str(city + 1) for city in route)
+        print(f"  generation {generation}: {route_text}, length = {length}")
+
+    best_path, best_path_length, aco_improvements = ant_colony_shortest_path()
+    best_path_text = " -> ".join(NAMES[i] for i in best_path)
+
+    print()
+    print("TASK 2. ANT COLONY ALGORITHM FOR SHORTEST PATH")
+    print(f"Best path: {best_path_text}")
+    print(f"Path length: {best_path_length}")
+    print("Improvements:")
+    for iteration, path, length in aco_improvements:
+        path_text = " -> ".join(NAMES[i] for i in path)
+        print(f"  iteration {iteration}: {path_text}, length = {length}")
+
+\end{lstlisting}
+
+\section{Вывод программы}
+После запуска программы был получен следующий результат:
+
+\begin{lstlisting}[caption={Вывод программы},language={}]
+TASK 1. GENETIC ALGORITHM FOR TSP
+Best route: 1 -> 5 -> 3 -> 4 -> 2 -> 1
+Route length: 19
+Improvements:
+  generation 0: 1 -> 2 -> 3 -> 4 -> 5 -> 1, length = 24
+  generation 3: 1 -> 5 -> 3 -> 4 -> 2 -> 1, length = 19
+
+TASK 2. ANT COLONY ALGORITHM FOR SHORTEST PATH
+Best path: A -> E -> D -> G
+Path length: 39
+Improvements:
+  iteration 1: A -> C -> E -> D -> F -> G, length = 55
+  iteration 1: A -> E -> D -> F -> G, length = 41
+  iteration 6: A -> E -> D -> G, length = 39
+\end{lstlisting}
+
+\section{Анализ результатов}
+\subsection{Результат для задачи коммивояжера}
+Генетический алгоритм нашел маршрут:
+\[
+1 \rightarrow 5 \rightarrow 3 \rightarrow 4 \rightarrow 2 \rightarrow 1.
+\]
+Длина маршрута равна:
+\[
+5 + 1 + 6 + 6 + 1 = 19.
+\]
+Так как матрица расстояний симметрична, обратный маршрут
+\[
+1 \rightarrow 2 \rightarrow 4 \rightarrow 3 \rightarrow 5 \rightarrow 1
+\]
+имеет такую же длину. Полученное значение целевой функции равно 19, то есть именно эту сумму расстояний алгоритм минимизировал.
+
+\subsection{Результат для алгоритма муравьиной колонии}
+Алгоритм муравьиной колонии нашел путь:
+\[
+A \rightarrow E \rightarrow D \rightarrow G.
+\]
+Его длина равна:
+\[
+8 + 9 + 22 = 39.
+\]
+В процессе работы сначала были найдены более длинные пути: $A \rightarrow C \rightarrow E \rightarrow D \rightarrow F \rightarrow G$ длиной 55 и $A \rightarrow E \rightarrow D \rightarrow F \rightarrow G$ длиной 41. После накопления феромона на более выгодных ребрах был найден путь длиной 39.
+
+\section{Вывод}
+В ходе лабораторной работы были решены две задачи оптимизации для варианта 11. Для задачи коммивояжера был применен генетический алгоритм с размером популяции 4 и вероятностью мутации 0,01. Лучший найденный маршрут имеет длину 19.
+
+Для задачи поиска кратчайшего пути был применен алгоритм муравьиной колонии. Лучший найденный путь из A в G имеет вид $A \rightarrow E \rightarrow D \rightarrow G$, его суммарный вес равен 39.
+
+Таким образом, оба эвристических метода позволили получить оптимальные или близкие к оптимальным решения за небольшое число итераций. Генетический алгоритм оказался удобным для работы с перестановками городов, а алгоритм муравьиной колонии --- для выбора последовательности ребер в графе с учетом накопленного феромона и расстояний.
+
+\end{document}

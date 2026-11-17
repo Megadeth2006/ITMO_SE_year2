@@ -1,0 +1,12 @@
+limit: 1000
+memory_size: 0x400
+memory_mapped_io:
+  0x80: [119, 111, 114, 108, 100, 10]
+  0x84: []
+reports:
+  - name: result
+    slice: last
+    view: |
+      numio[0x80]: {io:0x80:dec}
+      numio[0x84]: {io:0x84:dec}
+      mem[0..31]: {memory:0:31}

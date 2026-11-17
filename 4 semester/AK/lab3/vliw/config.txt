@@ -1,0 +1,25 @@
+name: "FNV-1a 32-bit Hash Test"
+limit: 2000
+memory_size: 0x1000
+memory_mapped_io:
+  0x80: [67, 111, 109, 112, 117, 116, 101, 114, 115, 32, 97, 114, 101, 32, 97, 119, 101, 115, 111, 109, 101, 33, 0]
+  0x84: []
+reports:
+  - name: step-by-step
+    slice: all
+    view: |
+      {pc}: {instruction} {pc:label}
+  - name: result
+    slice: last
+    view: |
+      numio[0x80]: {io:0x80:dec}
+      numio[0x84]: {io:0x84:dec}
+    assert: |
+      numio[0x80]: [] >>> []
+      numio[0x84]: [] >>> [-51386549]
+  - name: vliw-stats
+    slice: last
+    view: |
+      vliw:load-percent:    {vliw:load-percent}
+      vliw:avg-load:        {vliw:avg-load}
+      vliw:bundles-by-load: {vliw:bundles-by-load}

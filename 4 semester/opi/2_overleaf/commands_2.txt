@@ -1,0 +1,460 @@
+$ErrorActionPreference = "Stop"
+
+# настройки
+
+$root = "D:\projects\university\4 semester\opi\2" #
+$zips = "$root\zips"
+
+# проверяем папки с архивами файлов исходников
+
+if (!(Test-Path $zips)) {
+    throw "не найдена папка с архивами: $zips"
+}
+
+for ($i = 0; $i -le 56; $i++) {
+    $zipPath = "$zips\commit$i.zip"
+    if (!(Test-Path $zipPath)) {
+        throw "не найден архив: $zipPath"
+    }
+}
+
+
+Set-Location $root
+
+# создаем реп
+
+git init --bare remote.git
+
+git clone remote.git user1_work
+git clone remote.git user2_work
+
+# настраиваем юзера
+Set-Location "$root\user1_work"
+git config user.name "User Red"
+git config user.email "red@example.com"
+
+Set-Location "$root\user2_work"
+git config user.name "User Blue"
+git config user.email "blue@example.com"
+
+# функции нужные
+
+function Use-User1 {
+    Set-Location "$root\user1_work"
+}
+
+function Use-User2 {
+    Set-Location "$root\user2_work"
+}
+
+function Fetch-All {
+    git fetch --all --tags
+}
+
+function Apply-Zip {
+    param(
+        [Parameter(Mandatory=$true)][string]$Rev
+    )
+
+    $num = $Rev -replace '^r', ''
+    $zipPath = "$zips\commit$num.zip"
+
+    if (!(Test-Path $zipPath)) {
+        throw "Archive not found: $zipPath"
+    }
+
+    $tmpRoot = "$root\tmp"
+
+    if (!(Test-Path $tmpRoot)) {
+        New-Item -ItemType Directory -Path $tmpRoot | Out-Null
+    }
+
+    $tempDir = "$tmpRoot\temp_extract_$Rev"
+
+    if (Test-Path $tempDir) {
+        Remove-Item -Recurse -Force $tempDir
+    }
+
+    New-Item -ItemType Directory -Path $tempDir | Out-Null
+
+    # Вместо Expand-Archive используем tar.exe
+    & tar.exe -xf $zipPath -C $tempDir
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to extract archive: $zipPath"
+    }
+
+    # Удаляем всё из рабочей копии, кроме .git
+    Get-ChildItem -Force | Where-Object {
+        $_.Name -ne ".git"
+    } | Remove-Item -Recurse -Force
+
+    # Если внутри архива одна корневая папка, берём её содержимое
+    $items = @(Get-ChildItem $tempDir -Force)
+
+    if ($items.Count -eq 1 -and $items[0].PSIsContainer) {
+        $sourceDir = $items[0].FullName
+    } else {
+        $sourceDir = $tempDir
+    }
+
+    Get-ChildItem $sourceDir -Force | Where-Object {
+        $_.Name -ne ".git"
+    } | ForEach-Object {
+        Copy-Item $_.FullName -Destination (Get-Location).Path -Recurse -Force
+    }
+
+    Remove-Item -Recurse -Force $tempDir
+}
+
+function Commit-ZipRevision {
+    param(
+        [Parameter(Mandatory=$true)][string]$Rev,
+        [Parameter(Mandatory=$true)][string]$Actor,
+        [Parameter(Mandatory=$true)][string]$Branch
+    )
+
+    Write-Host "Creating $Rev by $Actor on $Branch"
+
+    Apply-Zip $Rev
+    git add -A
+    git commit --allow-empty -m "${Rev}: ${Actor} change on ${Branch}"
+    git tag $Rev
+}
+
+function Merge-ZipRevision {
+    param(
+        [Parameter(Mandatory=$true)][string]$Rev,
+        [Parameter(Mandatory=$true)][string]$Source,
+        [Parameter(Mandatory=$true)][string]$Message
+    )
+
+    Write-Host "Merging $Source as $Rev"
+
+    git merge --no-ff --no-commit -s ours $Source
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git merge failed for $Rev from source $Source"
+    }
+
+    Apply-Zip $Rev
+    git add -A
+    git commit --allow-empty -m $Message
+    git tag $Rev
+}
+
+function Push-Current {
+    param(
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$Tags
+    )
+
+    git push -u origin HEAD
+
+    foreach ($t in $Tags) {
+        git push origin $t
+    }
+}
+
+# r0
+
+Use-User1
+Apply-Zip r0
+git add -A
+git commit --allow-empty -m "r0: initial source code from variant archive"
+git branch -M master
+git tag r0
+git push origin master
+git push origin r0
+
+Use-User2
+git pull origin master
+git fetch origin --tags
+
+#  r1-r9 
+
+Use-User1
+git checkout -b red-bottom r0
+Commit-ZipRevision -Rev r1 -Actor "User Red" -Branch "red-bottom"
+Push-Current r1
+
+Use-User2
+Fetch-All
+git checkout -b blue-top r1
+Commit-ZipRevision -Rev r2 -Actor "User Blue" -Branch "blue-top"
+Push-Current r2
+
+git checkout -b blue-middle r2
+Commit-ZipRevision -Rev r3 -Actor "User Blue" -Branch "blue-middle"
+Commit-ZipRevision -Rev r4 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r3 r4
+
+Use-User1
+Fetch-All
+git checkout master
+Commit-ZipRevision -Rev r5 -Actor "User Red" -Branch "master"
+Push-Current r5
+
+git checkout -b red-middle r5
+Commit-ZipRevision -Rev r6 -Actor "User Red" -Branch "red-middle"
+Push-Current r6
+
+git checkout master
+Commit-ZipRevision -Rev r7 -Actor "User Red" -Branch "master"
+Push-Current r7
+
+git checkout red-bottom
+Commit-ZipRevision -Rev r8 -Actor "User Red" -Branch "red-bottom"
+Push-Current r8
+
+Use-User2
+Fetch-All
+git checkout -b blue-bottom r8
+Commit-ZipRevision -Rev r9 -Actor "User Blue" -Branch "blue-bottom"
+Push-Current r9
+
+#  r10-r24 
+
+git checkout blue-top
+Commit-ZipRevision -Rev r10 -Actor "User Blue" -Branch "blue-top"
+Commit-ZipRevision -Rev r11 -Actor "User Blue" -Branch "blue-top"
+Push-Current r10 r11
+
+git checkout blue-middle
+Commit-ZipRevision -Rev r12 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r12
+
+git checkout blue-top
+Commit-ZipRevision -Rev r13 -Actor "User Blue" -Branch "blue-top"
+Commit-ZipRevision -Rev r14 -Actor "User Blue" -Branch "blue-top"
+Push-Current r13 r14
+
+Use-User1
+Fetch-All
+git checkout master
+Commit-ZipRevision -Rev r15 -Actor "User Red" -Branch "master"
+Commit-ZipRevision -Rev r16 -Actor "User Red" -Branch "master"
+Push-Current r15 r16
+
+git checkout red-bottom
+Commit-ZipRevision -Rev r17 -Actor "User Red" -Branch "red-bottom"
+Push-Current r17
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Commit-ZipRevision -Rev r18 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r18
+
+Use-User1
+Fetch-All
+git checkout red-bottom
+Commit-ZipRevision -Rev r19 -Actor "User Red" -Branch "red-bottom"
+Commit-ZipRevision -Rev r20 -Actor "User Red" -Branch "red-bottom"
+Push-Current r19 r20
+
+Use-User2
+Fetch-All
+git checkout blue-top
+Commit-ZipRevision -Rev r21 -Actor "User Blue" -Branch "blue-top"
+Push-Current r21
+
+git checkout blue-bottom
+Commit-ZipRevision -Rev r22 -Actor "User Blue" -Branch "blue-bottom"
+Push-Current r22
+
+git checkout blue-top
+Commit-ZipRevision -Rev r23 -Actor "User Blue" -Branch "blue-top"
+Push-Current r23
+
+Use-User1
+Fetch-All
+git checkout master
+Commit-ZipRevision -Rev r24 -Actor "User Red" -Branch "master"
+Push-Current r24
+
+#  r25-r34 
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Merge-ZipRevision -Rev r25 -Source "origin/red-middle" -Message "r25: User Blue merge red-middle into blue-middle"
+Push-Current r25
+
+Use-User1
+Fetch-All
+git checkout -b red-middle-high r25
+Commit-ZipRevision -Rev r26 -Actor "User Red" -Branch "red-middle-high"
+Push-Current r26
+
+git checkout red-bottom
+Commit-ZipRevision -Rev r27 -Actor "User Red" -Branch "red-bottom"
+Push-Current r27
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Commit-ZipRevision -Rev r28 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r28
+
+git checkout blue-top
+Commit-ZipRevision -Rev r29 -Actor "User Blue" -Branch "blue-top"
+Push-Current r29
+
+# ВАЖНО: r30 и r33 идут от r6, а не от r25.
+Use-User1
+Fetch-All
+git checkout -b red-middle-low r6
+Commit-ZipRevision -Rev r30 -Actor "User Red" -Branch "red-middle-low"
+Push-Current r30
+
+git checkout red-middle-high
+Commit-ZipRevision -Rev r31 -Actor "User Red" -Branch "red-middle-high"
+Push-Current r31
+
+Use-User2
+Fetch-All
+git checkout blue-bottom
+Commit-ZipRevision -Rev r32 -Actor "User Blue" -Branch "blue-bottom"
+Push-Current r32
+
+Use-User1
+Fetch-All
+git checkout red-middle-low
+Commit-ZipRevision -Rev r33 -Actor "User Red" -Branch "red-middle-low"
+Push-Current r33
+
+git checkout red-middle-high
+Merge-ZipRevision -Rev r34 -Source "red-middle-low" -Message "r34: User Red merge red-middle-low into red-middle-high"
+Push-Current r34
+
+#  r35-r48 
+
+Use-User2
+Fetch-All
+git checkout blue-top
+Commit-ZipRevision -Rev r35 -Actor "User Blue" -Branch "blue-top"
+Push-Current r35
+
+Use-User1
+Fetch-All
+git checkout red-bottom
+Commit-ZipRevision -Rev r36 -Actor "User Red" -Branch "red-bottom"
+Commit-ZipRevision -Rev r37 -Actor "User Red" -Branch "red-bottom"
+Push-Current r36 r37
+
+git checkout master
+Commit-ZipRevision -Rev r38 -Actor "User Red" -Branch "master"
+Push-Current r38
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Commit-ZipRevision -Rev r39 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r39
+
+Use-User1
+Fetch-All
+git checkout red-middle-high
+Commit-ZipRevision -Rev r40 -Actor "User Red" -Branch "red-middle-high"
+Push-Current r40
+
+Use-User2
+Fetch-All
+git checkout blue-bottom
+Commit-ZipRevision -Rev r41 -Actor "User Blue" -Branch "blue-bottom"
+Push-Current r41
+
+Use-User1
+Fetch-All
+git checkout red-bottom
+Commit-ZipRevision -Rev r42 -Actor "User Red" -Branch "red-bottom"
+Push-Current r42
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Commit-ZipRevision -Rev r43 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r43
+
+git checkout blue-top
+Commit-ZipRevision -Rev r44 -Actor "User Blue" -Branch "blue-top"
+Push-Current r44
+
+Use-User1
+Fetch-All
+git checkout master
+Commit-ZipRevision -Rev r45 -Actor "User Red" -Branch "master"
+Push-Current r45
+
+Use-User2
+Fetch-All
+git checkout blue-top
+Commit-ZipRevision -Rev r46 -Actor "User Blue" -Branch "blue-top"
+Push-Current r46
+
+git checkout blue-middle
+Merge-ZipRevision -Rev r47 -Source "blue-top" -Message "r47: User Blue merge blue-top into blue-middle"
+Push-Current r47
+
+Use-User1
+Fetch-All
+git checkout master
+Commit-ZipRevision -Rev r48 -Actor "User Red" -Branch "master"
+Push-Current r48
+
+#  r49-r56 
+
+git checkout red-middle-high
+Commit-ZipRevision -Rev r49 -Actor "User Red" -Branch "red-middle-high"
+Push-Current r49
+
+Use-User2
+Fetch-All
+git checkout blue-middle
+Commit-ZipRevision -Rev r50 -Actor "User Blue" -Branch "blue-middle"
+Commit-ZipRevision -Rev r51 -Actor "User Blue" -Branch "blue-middle"
+Push-Current r50 r51
+
+Use-User1
+Fetch-All
+git checkout red-middle-high
+Merge-ZipRevision -Rev r52 -Source "origin/blue-middle" -Message "r52: User Red merge blue-middle into red-middle-high"
+Push-Current r52
+
+git checkout red-bottom
+Merge-ZipRevision -Rev r53 -Source "red-middle-high" -Message "r53: User Red merge red-middle-high into red-bottom"
+Push-Current r53
+
+Commit-ZipRevision -Rev r54 -Actor "User Red" -Branch "red-bottom"
+Push-Current r54
+
+Use-User2
+Fetch-All
+git checkout blue-bottom
+Merge-ZipRevision -Rev r55 -Source "origin/red-bottom" -Message "r55: User Blue merge red-bottom into blue-bottom"
+Push-Current r55
+
+Use-User1
+Fetch-All
+git checkout master
+Merge-ZipRevision -Rev r56 -Source "origin/blue-bottom" -Message "r56: User Red merge blue-bottom into master"
+Push-Current r56
+
+#  проверка по итогу
+
+Use-User1
+Fetch-All
+
+git tag --sort=v:refname
+git log --graph --oneline --decorate --all --topo-order
+
+git tag --sort=v:refname > git-tags.txt
+git log --graph --oneline --decorate --all --topo-order > git-graph.txt
+git log --pretty=format:"%h %d %an %s" --all --topo-order > git-commits.txt
+
+
+Write-Host "Saved:"
+Write-Host "$root\user1_work\git-tags.txt"
+Write-Host "$root\user1_work\git-graph.txt"
+Write-Host "$root\user1_work\git-commits.txt"

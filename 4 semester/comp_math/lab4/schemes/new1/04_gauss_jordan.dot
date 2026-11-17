@@ -1,0 +1,49 @@
+digraph G {
+rankdir=TB;
+graph [fontname="DejaVu Sans", bgcolor="white", dpi=180, nodesep=0.45, ranksep=0.55, splines=ortho];
+node [fontname="DejaVu Sans", fontsize=12, shape=rectangle, style="rounded,filled", fillcolor="white", color="#333333", penwidth=1.2, margin="0.10,0.07"];
+edge [fontname="DejaVu Sans", fontsize=10, color="#333333", arrowsize=0.7];
+
+start [shape=ellipse, label="Начало"];
+in [shape=parallelogram, label="Ввод: matrix, vector"];
+init [label="size = len(vector)\na = copy(matrix), b = copy(vector)\ncolumn = 0"];
+cloop [shape=diamond, label="column < size?"];
+pivot [label="pivotRow = argmax |a[row][column]|\npivot = a[pivotRow][column]"];
+sing [shape=diamond, label="|pivot| < EPSILON?"];
+err [shape=parallelogram, label="Ошибка:\nсистема вырождена"];
+swapdec [shape=diamond, label="pivotRow != column?"];
+swap [label="Поменять строки a и b:\ncolumn <-> pivotRow"];
+norm [label="pivot = a[column][column]\nДля j = column..size-1:\na[column][j] /= pivot\nb[column] /= pivot"];
+rowinit [label="row = 0"];
+rloop [shape=diamond, label="row < size?"];
+skiprow [shape=diamond, label="row == column?"];
+factor [label="factor = a[row][column]"];
+skipfactor [shape=diamond, label="|factor| < EPSILON?"];
+elim [label="Для j = column..size-1:\na[row][j] -= factor * a[column][j]\nb[row] -= factor * b[column]"];
+rowinc [label="row += 1"];
+colinc [label="column += 1"];
+out [shape=parallelogram, label="Вывод: b\n(вектор коэффициентов)"];
+end [shape=ellipse, label="Конец"];
+start -> in -> init -> cloop;
+cloop -> pivot [label="да"];
+pivot -> sing;
+sing -> err [label="да"];
+err -> end;
+sing -> swapdec [label="нет"];
+swapdec -> swap [label="да"];
+swapdec -> norm [label="нет"];
+swap -> norm;
+norm -> rowinit -> rloop;
+rloop -> skiprow [label="да"];
+skiprow -> rowinc [label="да"];
+skiprow -> factor [label="нет"];
+factor -> skipfactor;
+skipfactor -> rowinc [label="да"];
+skipfactor -> elim [label="нет"];
+elim -> rowinc -> rloop;
+rloop -> colinc [label="нет"];
+colinc -> cloop;
+cloop -> out [label="нет"];
+out -> end;
+
+}

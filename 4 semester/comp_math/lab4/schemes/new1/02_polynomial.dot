@@ -1,0 +1,28 @@
+digraph G {
+rankdir=TB;
+graph [fontname="DejaVu Sans", bgcolor="white", dpi=180, nodesep=0.45, ranksep=0.55, splines=ortho];
+node [fontname="DejaVu Sans", fontsize=12, shape=rectangle, style="rounded,filled", fillcolor="white", color="#333333", penwidth=1.2, margin="0.10,0.07"];
+edge [fontname="DejaVu Sans", fontsize=10, color="#333333", arrowsize=0.7];
+
+start [shape=ellipse, label="Начало"];
+in [shape=parallelogram, label="Ввод: xs, ys, degree"];
+basis [label="basisFunctions = [x^power\nдля power = 0..degree]"];
+coef [label="coefficients = least_squares_by_basis\n(xs, ys, basisFunctions)"];
+eval [label="Создать evaluator(x):\nΣ coefficients[power] * x^power"];
+map [label="coefficientMap = {a0, a1, ...}"];
+dec [shape=diamond, label="degree равен 1, 2\nили 3?"];
+expr1 [label="degree = 1:\nexpression = a1*x + a0"];
+expr2 [label="degree = 2:\nexpression = a2*x^2 + a1*x + a0"];
+expr3 [label="degree = 3:\nexpression = a3*x^3 + a2*x^2 + a1*x + a0"];
+out [shape=parallelogram, label="Вернуть FittedFunction\n(expression, coefficients, evaluator)"];
+end [shape=ellipse, label="Конец"];
+start -> in -> basis -> coef -> eval -> map -> dec;
+dec -> expr1 [label="1"];
+dec -> expr2 [label="2"];
+dec -> expr3 [label="3"];
+expr1 -> out;
+expr2 -> out;
+expr3 -> out;
+out -> end;
+
+}

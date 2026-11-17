@@ -1,0 +1,14 @@
+flowchart TD
+    A([Начало]) --> B["Ввод: f(x), a, b, epsilon"]
+    B --> C["fa = f(a)<br/>fb = f(b)"]
+    C --> D{"На интервале<br/>ровно один корень?"}
+    D -- нет --> E([Выход])
+    D -- да --> F["Выбрать фиксированный конец c<br/>и начальное приближение x0"]
+    F --> G["iteration = 0"]
+    G --> H["iteration = iteration + 1<br/>fx0 = f(x0)<br/>x1 = x0 - fx0 * (x0 - c) / (fx0 - f(c))"]
+    H --> I["diff = |x1 - x0|<br/>res = |f(x1)|"]
+    I --> J{"diff < epsilon<br/>и res < epsilon?"}
+    J -- да --> K["Вывод результата"]
+    K --> L([Конец])
+    J -- нет --> M["x0 = x1"]
+    M --> H

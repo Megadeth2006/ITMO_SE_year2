@@ -1,0 +1,469 @@
+\documentclass[a4paper,14pt]{extarticle}
+
+% Компилировать XeLaTeX или LuaLaTeX
+
+
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4,
+    language=Python,
+    % Поддержка кириллицы в комментариях и строках:
+    extendedchars=true,
+    keepspaces=true
+}
+
+\geometry{left=30mm,right=15mm,top=20mm,bottom=20mm}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.3em}
+\renewcommand{\baselinestretch}{1.15}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    showstringspaces=false,
+    tabsize=4
+}
+
+\newcommand{\placeholder}[1]{%
+\begin{center}
+\fbox{%
+\begin{minipage}[c][0.18\textheight][c]{0.88\textwidth}
+\centering #1
+\end{minipage}}
+\end{center}}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        Министерство науки и высшего образования Российской Федерации\\
+        Университет ИТМО\\[2cm]
+
+        \textbf{Лабораторная работа №4}\\[0.3cm]
+        \textbf{«Аппроксимация функции методом наименьших квадратов»}\\[0.5cm]
+        Вариант 3\\[3cm]
+    \end{center}
+
+    \begin{flushright}
+        Выполнил: Григорьев Даниил Александрович\\
+        Группа: P3216\\
+        Проверил: Наумова Надежда Александровна\\
+    \end{flushright}
+
+    \vfill
+    \begin{center}
+        Санкт-Петербург\\
+        2026
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Цель работы}
+
+Цель работы: найти функцию, являющуюся наилучшим приближением заданной табличной функции по методу наименьших квадратов, сравнить несколько видов аппроксимирующих зависимостей и выбрать лучшую по среднеквадратическому отклонению.
+
+\section{Задание}
+
+Для вычислительной части используется вариант 3:
+\[
+    y = \frac{4x}{x^4 + 3}, \qquad x \in [-2; 0], \qquad h = 0.2.
+\]
+
+Необходимо сформировать таблицу значений функции на заданном интервале, построить линейное и квадратичное приближения по 11 точкам, найти среднеквадратические отклонения и выбрать лучшее приближение.
+
+В программной части необходимо исследовать следующие зависимости:
+\begin{itemize}
+    \item линейная функция;
+    \item полиномиальная функция 2-й степени;
+    \item полиномиальная функция 3-й степени;
+    \item экспоненциальная функция;
+    \item логарифмическая функция;
+    \item степенная функция.
+\end{itemize}
+
+Программа должна принимать таблицу из 8--12 точек, строить графики функций, выводить коэффициенты, меру отклонения, среднеквадратическое отклонение, массивы $x_i$, $y_i$, $\varphi(x_i)$, $\varepsilon_i$, коэффициент корреляции Пирсона для линейной зависимости и коэффициент детерминации $R^2$.
+
+\section{Рабочие формулы метода}
+
+Метод наименьших квадратов выбирает коэффициенты аппроксимирующей функции так, чтобы сумма квадратов отклонений была минимальной:
+\[
+    S = \sum_{i=1}^{n} \left(\varphi(x_i) - y_i\right)^2 \to \min.
+\]
+
+Среднеквадратическое отклонение вычисляется по формуле:
+\[
+    \sigma = \sqrt{\frac{S}{n}}.
+\]
+
+Для линейной зависимости $\varphi(x) = ax + b$ система нормальных уравнений имеет вид:
+\[
+\begin{cases}
+    a\sum x_i^2 + b\sum x_i = \sum x_i y_i,\\
+    a\sum x_i + bn = \sum y_i.
+\end{cases}
+\]
+
+Для полинома степени $m$ используется вид:
+\[
+    \varphi(x) = a_0 + a_1x + a_2x^2 + \dots + a_mx^m.
+\]
+
+Коэффициенты находятся из системы нормальных уравнений:
+\[
+    \sum_{j=0}^{m} a_j \sum_{i=1}^{n} x_i^{j+k} = \sum_{i=1}^{n} y_i x_i^k,
+    \qquad k = 0, 1, \dots, m.
+\]
+
+Неполиномиальные зависимости приводятся к линейному виду:
+\begin{itemize}
+    \item экспоненциальная: $y = ae^{bx}$, тогда $\ln y = \ln a + bx$;
+    \item логарифмическая: $y = a\ln x + b$;
+    \item степенная: $y = ax^b$, тогда $\ln y = \ln a + b\ln x$.
+\end{itemize}
+
+Коэффициент детерминации:
+\[
+    R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i - \varphi(x_i))^2}{\sum_{i=1}^{n}(y_i - \overline{y})^2}.
+\]
+
+Коэффициент корреляции Пирсона для линейной зависимости:
+\[
+    r = \frac{\sum_{i=1}^{n}(x_i - \overline{x})(y_i - \overline{y})}
+    {\sqrt{\sum_{i=1}^{n}(x_i - \overline{x})^2 \sum_{i=1}^{n}(y_i - \overline{y})^2}}.
+\]
+
+\section{Вычислительная часть}
+
+Составил таблицу из 11 точек для функции
+
+\begin{table}[H]
+\centering
+\caption{Таблица значений функции $y = \frac{4x}{x^4 + 3}$}
+\begin{tabular}{c|c|c}
+\toprule
+$i$ & $x_i$ & $y_i$ \\
+\midrule
+1 & -2.0 & -0.421 \\
+2 & -1.8 & -0.533 \\
+3 & -1.6 & -0.670 \\
+4 & -1.4 & -0.819 \\
+5 & -1.2 & -0.946 \\
+6 & -1.0 & -1.000 \\
+7 & -0.8 & -0.939 \\
+8 & -0.6 & -0.767 \\
+9 & -0.4 & -0.529 \\
+10 & -0.2 & -0.267 \\
+11 & 0.0 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Линейное приближение имеет вид:
+\[
+    \varphi_1(x) = 0.168499x - 0.457840.
+\]
+
+Для линейного приближения:
+\[
+    S_1 \approx 0.855023, \qquad \sigma_1 \approx 0.279.
+\]
+
+Квадратичное приближение имеет вид:
+\[
+    \varphi_2(x) = 0.773805x^2 + 1.716109x + 0.006443.
+\]
+
+Для квадратичного приближения:
+\[
+    S_2 \approx 0.033026, \qquad \sigma_2 \approx 0.055.
+\]
+
+Так как $\sigma_2 < \sigma_1$, в вычислительной части лучшим из двух приближений является квадратичное.
+
+\section{Блок-схемы реализованного алгоритма}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{1.png}
+    \caption{Линейная аппроксимация}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{2.png}
+    \caption{Полиномиальная аппроксимация 2 степени}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{3.png}
+    \caption{Полиномиальная аппроксимация 3 степени}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{4.png}
+    \caption{Экспоненциальная аппроксимация}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{5.png}
+    \caption{Логарифмическая аппроксимация}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{6.png}
+    \caption{Степенная аппроксимация}
+    \label{fig:placeholder}
+\end{figure}
+
+
+
+\section{Ссылка на GitHub с основной реализацией}
+
+\noindent Ссылка на репозиторий: 
+\url{https://github.com/Megadeth2006/Lab4_MathComp}
+
+
+\section{Пример работы программы}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{screen2.png}
+    \caption{Главное окно после запуска}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{screen1.png}
+    \caption{Отображение апппроксимации значений из варианта}
+    \label{fig:placeholder}
+\end{figure}
+
+Для набора данных варианта 3 программная часть строит все применимые функции. Экспоненциальная, логарифмическая и степенная зависимости для данного набора не применяются, так как в таблице есть неположительные значения $x$ и $y$. Среди применимых моделей программа выбирает лучшую по минимальному среднеквадратическому отклонению.
+
+\section{Тестирование программы}
+
+Программа была проверена на следующих наборах данных:
+\begin{enumerate}
+    \item корректный набор варианта 3 из 11 точек;
+    \item положительный набор данных, для которого применимы все 6 видов аппроксимации;
+    \item некорректный набор данных: недостаточное количество точек и неверный числовой ввод.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{screen3.png}
+    \caption{Корректный набор из варианта 3}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{screen4.png}
+    \caption{положительный набор данных.}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{screen5.png}
+    \caption{человекочитаемое сообщение об ошибке при некорректном вводе}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\section{Листинг}
+\begin{lstlisting}[style=pythonstyle, caption={Модуль вычислительных методов аппроксимации (approximation\_methods.py)}, label={lst:approximation_methods}]
+from __future__ import annotations
+from typing import Callable, Any
+import math
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class FittedFunction:
+    expression: str
+    coefficients: dict[str, float]
+    evaluator: Callable[..., Any]
+
+
+EPSILON = 1e-12
+
+
+def solve_linear_system(matrix: list[list[float]], vector: list[float]) -> list[float]:
+    size = len(vector)
+    a = [row[:] for row in matrix]
+    b = vector[:]
+
+    for column in range(size):
+        pivot_row = max(range(column, size), key=lambda row: abs(a[row][column]))
+        pivot = a[pivot_row][column]
+        if abs(pivot) < EPSILON:
+            raise ValueError("Система нормальных уравнений вырождена. Проверьте исходные точки.")
+
+        if pivot_row != column:
+            a[column], a[pivot_row] = a[pivot_row], a[column]
+            b[column], b[pivot_row] = b[pivot_row], b[column]
+
+        pivot = a[column][column]
+        for j in range(column, size):
+            a[column][j] /= pivot
+        b[column] /= pivot
+
+        for row in range(size):
+            if row == column:
+                continue
+            factor = a[row][column]
+            if abs(factor) < EPSILON:
+                continue
+            for j in range(column, size):
+                a[row][j] -= factor * a[column][j]
+            b[row] -= factor * b[column]
+
+    return b
+
+
+def least_squares_by_basis(xs: list[float], ys: list[float], basis_functions: list[Callable[..., Any]]) -> list[float]:
+    size = len(basis_functions)
+    matrix: list[list[float]] = []
+    vector: list[float] = []
+
+    basis_values = [[basis(x) for x in xs] for basis in basis_functions]
+
+    for i in range(size):
+        matrix_row: list[float] = []
+        for j in range(size):
+            matrix_row.append(sum(basis_values[i][k] * basis_values[j][k] for k in range(len(xs))))
+        matrix.append(matrix_row)
+        vector.append(sum(ys[k] * basis_values[i][k] for k in range(len(xs))))
+
+    return solve_linear_system(matrix, vector)
+
+
+def fit_polynomial(xs: list[float], ys: list[float], degree: int) -> FittedFunction:
+    basis_functions = [lambda x, power=power: x ** power for power in range(degree + 1)]
+    coefficients = least_squares_by_basis(xs, ys, basis_functions)
+
+    def evaluate(x: float) -> float:
+        return sum(coefficients[power] * x ** power for power in range(degree + 1))
+
+    names = ["a0", "a1", "a2", "a3"]
+    coefficient_map = {names[index]: coefficients[index] for index in range(degree + 1)}
+
+    if degree == 1:
+        expression = "a1*x + a0"
+    elif degree == 2:
+        expression = "a2*x^2 + a1*x + a0"
+    elif degree == 3:
+        expression = "a3*x^3 + a2*x^2 + a1*x + a0"
+    else:
+        expression = "polynomial"
+
+    return FittedFunction(expression, coefficient_map, evaluate)
+
+
+def fit_exponential(xs: list[float], ys: list[float]) -> FittedFunction:
+    if any(y <= 0 for y in ys):
+        raise ValueError("экспоненциальная аппроксимация y = a*e^(b*x) требует y > 0 для всех точек")
+
+    transformed_y = [math.log(y) for y in ys]
+    c0, c1 = least_squares_by_basis(xs, transformed_y, [lambda _x: 1.0, lambda x: x])
+    a = math.exp(c0)
+    b = c1
+
+    def evaluate(x: float) -> float:
+        return a * math.exp(b * x)
+
+    return FittedFunction("a*e^(b*x)", {"a": a, "b": b}, evaluate)
+
+
+def fit_logarithmic(xs: list[float], ys: list[float]) -> FittedFunction:
+    if any(x <= 0 for x in xs):
+        raise ValueError("логарифмическая аппроксимация y = a*ln(x) + b требует x > 0 для всех точек")
+
+    c0, c1 = least_squares_by_basis(xs, ys, [lambda _x: 1.0, lambda x: math.log(x)])
+    b = c0
+    a = c1
+
+    def evaluate(x: float) -> float:
+        return a * math.log(x) + b
+
+    return FittedFunction("a*ln(x) + b", {"a": a, "b": b}, evaluate)
+
+
+def fit_power(xs: list[float], ys: list[float]) -> FittedFunction:
+    if any(x <= 0 for x in xs):
+        raise ValueError("степенная аппроксимация y = a*x^b требует x > 0 для всех точек")
+    if any(y <= 0 for y in ys):
+        raise ValueError("степенная аппроксимация y = a*x^b требует y > 0 для всех точек")
+
+    transformed_x = [math.log(x) for x in xs]
+    transformed_y = [math.log(y) for y in ys]
+    c0, c1 = least_squares_by_basis(transformed_x, transformed_y, [lambda _x: 1.0, lambda x: x])
+    a = math.exp(c0)
+    b = c1
+
+    def evaluate(x: float) -> float:
+        return a * x ** b
+
+    return FittedFunction("a*x^b", {"a": a, "b": b}, evaluate)
+\end{lstlisting}
+\section{Вывод}
+
+В ходе лабораторной работы был реализован метод наименьших квадратов для аппроксимации табличной функции. Программа исследует линейную, квадратичную, кубическую, экспоненциальную, логарифмическую и степенную зависимости, вычисляет меру отклонения, среднеквадратическое отклонение, коэффициент детерминации и коэффициент корреляции Пирсона для линейной функции.
+
+Для вычислительной части варианта 3 квадратичное приближение оказалось лучше линейного, так как имеет меньшее среднеквадратическое отклонение. В программной части лучшая функция выбирается автоматически среди всех применимых моделей.
+
+\end{document}

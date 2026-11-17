@@ -1,0 +1,7 @@
+-xc++
+-std=c++20
+-Wall
+-Wextra
+-Wpedantic
+-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
+--target=x86_64-pc-windows-msvc

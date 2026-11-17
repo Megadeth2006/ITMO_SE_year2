@@ -1,0 +1,14 @@
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.GeneratedMSBuildEditorConfig.editorconfig
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.AssemblyInfoInputs.cache
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.AssemblyInfo.cs
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.csproj.CoreCompileInputs.cache
+D:\projects\university\Languages\7\bin\Debug\net8.0\FilterTask.exe
+D:\projects\university\Languages\7\bin\Debug\net8.0\FilterTask.deps.json
+D:\projects\university\Languages\7\bin\Debug\net8.0\FilterTask.runtimeconfig.json
+D:\projects\university\Languages\7\bin\Debug\net8.0\FilterTask.dll
+D:\projects\university\Languages\7\bin\Debug\net8.0\FilterTask.pdb
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.dll
+D:\projects\university\Languages\7\obj\Debug\net8.0\refint\FilterTask.dll
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.pdb
+D:\projects\university\Languages\7\obj\Debug\net8.0\FilterTask.genruntimeconfig.cache
+D:\projects\university\Languages\7\obj\Debug\net8.0\ref\FilterTask.dll

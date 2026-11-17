@@ -1,0 +1,28 @@
+digraph G {
+rankdir=TB;
+graph [fontname="DejaVu Sans", bgcolor="white", dpi=180, nodesep=0.45, ranksep=0.55, splines=ortho];
+node [fontname="DejaVu Sans", fontsize=12, shape=rectangle, style="rounded,filled", fillcolor="white", color="#333333", penwidth=1.2, margin="0.10,0.07"];
+edge [fontname="DejaVu Sans", fontsize=10, color="#333333", arrowsize=0.7];
+
+start [shape=ellipse, label="Начало"];
+in [shape=parallelogram, label="Ввод: xs, ys"];
+checkx [shape=diamond, label="Все x_i > 0?"];
+checky [shape=diamond, label="Все y_i > 0?"];
+errx [shape=parallelogram, label="ValueError:\nтребуется x_i > 0"];
+erry [shape=parallelogram, label="ValueError:\nтребуется y_i > 0"];
+tr [label="transformedX_i = ln(x_i)\ntransformedY_i = ln(y_i)"];
+coef [label="c0, c1 = least_squares_by_basis\n(transformedX, transformedY, [1, x])"];
+ab [label="a = exp(c0)\nb = c1"];
+eval [label="Создать evaluator(x):\na * x^b"];
+out [shape=parallelogram, label="Вернуть FittedFunction\n'a*x^b', {a, b}, evaluator"];
+end [shape=ellipse, label="Конец"];
+start -> in -> checkx;
+checkx -> errx [label="нет"];
+errx -> end;
+checkx -> checky [label="да"];
+checky -> erry [label="нет"];
+erry -> end;
+checky -> tr [label="да"];
+tr -> coef -> ab -> eval -> out -> end;
+
+}

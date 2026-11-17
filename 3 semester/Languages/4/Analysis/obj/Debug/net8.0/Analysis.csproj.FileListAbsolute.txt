@@ -1,0 +1,14 @@
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.GeneratedMSBuildEditorConfig.editorconfig
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.AssemblyInfoInputs.cache
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.AssemblyInfo.cs
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.csproj.CoreCompileInputs.cache
+D:\projects\university\Languages\4\Analysis\bin\Debug\net8.0\Analysis.exe
+D:\projects\university\Languages\4\Analysis\bin\Debug\net8.0\Analysis.deps.json
+D:\projects\university\Languages\4\Analysis\bin\Debug\net8.0\Analysis.runtimeconfig.json
+D:\projects\university\Languages\4\Analysis\bin\Debug\net8.0\Analysis.dll
+D:\projects\university\Languages\4\Analysis\bin\Debug\net8.0\Analysis.pdb
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.dll
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\refint\Analysis.dll
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.pdb
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\Analysis.genruntimeconfig.cache
+D:\projects\university\Languages\4\Analysis\obj\Debug\net8.0\ref\Analysis.dll
